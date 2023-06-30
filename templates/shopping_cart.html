@@ -1,0 +1,117 @@
+{% extends 'base_generic.html' %}
+
+{#{% block navbar %}#}
+{#    {% include 'navbar.html' %}#}
+{#{% endblock %}#}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-7">
+                <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                    <ol class="breadcrumb ms-2">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
+                    </ol>
+                </nav>
+
+                <div class="w-100 border border-1"></div>
+                <p class="mt-2">You have {{ order_items|length }} item in your cart</p>
+
+                <div class="d-flex flex-column justify-content-center align-items-center" style="gap: 10px">
+                    {% for o_item in order_items %}
+                        <div class="border border-1 border-light d-flex justify-content-between" style="height: 7rem;">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <img src="{{ o_item.item.image_url }}"
+                                     alt="" style="max-height: 100%; max-width: 100%;">
+                                <div class="d-flex flex-column justify-contents-center" style="gap: 5px">
+                                    <p class="my-0">{{ o_item.item.name }}</p>
+                                    {% if o_item.lube_service %}
+                                        <p class="text-muted my-0">{{ o_item.lube_service.lube_type }}</p>
+                                    {% endif %}
+                                    <p class="text-muted my-0">Shipping: ${{ o_item.shipping_price }}</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center text-center">
+                                <label for="quantity" class="form-label">Quantity:</label>
+                                <input type="number" id="quantity"
+                                       class="form-control text-dark ms-2 px-2 mx-0 text-center"
+                                       disabled style="width: 3.5rem" placeholder="{{ o_item.quantity }}">
+                                <p class="d-flex align-items-center justify-content-end ms-5 my-0"
+                                   id="item-{{ o_item.id }}-price"></p>
+                                <form action="{% url 'delete_order_item' order_item_id=o_item.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
+                                         class="bi bi-trash text-danger" viewBox="0 0 16 16">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                    </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+
+            <div class="col-5">
+                <form method="post" action="{% url 'checkout' %}" class="border border-1 rounded-3 p-3">
+                    {% csrf_token %}
+                    <div class="form-group mt-3">
+                        <label for="cardHolder">Card Holder</label>
+                        <input type="text" class="form-control" id="cardHolder" placeholder="Enter card holder's name" required>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="cardNumber">Card Number</label>
+                        <input type="text" class="form-control" id="cardNumber" placeholder="Enter card number" required>
+                    </div>
+                    <div class="form-row d-flex mt-3" style="gap: 10px">
+                        <div class="col">
+                            <label for="expirationDate">Expiration Date</label>
+                            <input type="text" class="form-control" id="expirationDate" placeholder="MM/YY" required>
+                        </div>
+                        <div class="col">
+                            <label for="cvv">CVV</label>
+                            <input type="number" class="form-control" id="cvv" placeholder="CVV" required>
+                        </div>
+                    </div>
+                    <div class="w-100 border border-1 mt-4"></div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span>Subtotal</span>
+                        <span>${{ subtotal }}</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span>Shipping</span>
+                        <span>${{ shipping }}</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="fw-bold h3">Total</span>
+                        <span class="fw-bold h3">${{ total }}</span>
+                    </div>
+
+                    <input type="text" name="cart_id" value="{{ order_items.0.shopping_cart.id }}" hidden>
+                    <button type="submit" class="btn btn-success mt-3 w-100">Checkout</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function calculateItemPrice(basePrice, lubePrice, quantity, orderItemId) {
+            lubePrice = lubePrice ? lubePrice : 0
+            let totalItemPrice = (parseFloat(basePrice) + parseFloat(lubePrice)) * parseFloat(quantity);
+            document.getElementById(`item-${orderItemId}-price`).textContent = `$${totalItemPrice.toFixed(2)}`;
+        }
+
+        {% for o_item in order_items %}
+            calculateItemPrice('{{ o_item.item.price }}', '{{ o_item.lube_service.price }}', '{{ o_item.quantity }}', '{{ o_item.id }}');
+        {% endfor %}
+    </script>
+{% endblock %}
+
+{#{% block footer %}#}
+{#    {% include 'footer.html' %}#}
+{#{% endblock %}#}

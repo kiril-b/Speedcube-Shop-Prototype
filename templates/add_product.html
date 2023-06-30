@@ -1,0 +1,85 @@
+{% extends 'base_generic.html' %}
+
+
+{#{% block navbar %}#}
+{#    {% include 'navbar.html' %}#}
+{#{% endblock %}#}
+
+
+{% block content %}
+
+    <div class="container mt-5 bg-light p-5 rounded-3">
+        <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb" class="d-flex justify-content-between pe-2 mb-2">
+            <ol class="breadcrumb ms-2">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item" aria-current="page"><a href="{% url 'new_items_session' %}">Manage New
+                    Products</a></li>
+                <li class="breadcrumb-item active" aria-current="page">New Product ({{ item_type }})</li>
+            </ol>
+        </nav>
+        <h2>{{ item_type }} Form</h2>
+        <form action="{% url 'submit_item' %}" method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mt-3">
+                        {{ form.name }}
+                    </div>
+                    <div class="form-group mt-3">
+                        {{ form.brand }}
+                    </div>
+                    <div class="d-flex justify-content-between" style="gap: 15px;">
+                        <div class="input-group mt-3 w-50">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text rounded-0">$</span>
+                            </div>
+                            {{ form.price }}
+                        </div>
+                        <div class="form-group mt-3 w-50">
+                            {{ form.quantity }}
+                        </div>
+                    </div>
+                    <div class="form-group mt-3">
+                        <select class="form-control" id="category" name="category_value" required>
+                            <option value="" disabled selected hidden>Category</option>
+                            {% for category in categories_item %}
+                                <option value="{{ category.category_value }}">{{ category.category_value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="input-group mt-3">
+                        <div class="input-group-prepend">
+                                <span class="input-group-text rounded-0"><span><svg xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="16" height="16"
+                                                                                    fill="currentColor"
+                                                                                    class="bi bi-link-45deg"
+                                                                                    viewBox="0 0 16 16">
+  <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+  <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/>
+</svg></span></span>
+                        </div>
+                        {{ form.image_url }}
+                    </div>
+                    {% if item_type == 'Puzzle' %}
+                        <div class="form-group mt-3">
+                            <p class="ms-1">Plastic color:</p>
+                            {{ form.plastic_color }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mt-3">
+                    <div class="form-group h-100">
+                        {{ form.description }}
+                    </div>
+                </div>
+            </div>
+            <input type="text" name="item_type" value="{{ item_type }}" hidden>
+            <button type="submit" class="btn btn-success mt-3">Submit</button>
+        </form>
+    </div>
+
+{% endblock %}
+
+{#{% block footer %}#}
+{#    {% include 'footer.html' %}#}
+{#{% endblock %}#}

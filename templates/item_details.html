@@ -1,0 +1,191 @@
+{% extends 'base_generic.html' %}
+
+{% block style %}
+    {{ block.super }}
+{#    .form-check-input:checked + label.btn {#}
+{#    background-color: #007bff;#}
+{#    color: #fff;#}
+{#    }#}
+    .form-check-input:checked + label.btn {
+    background-color: #91C9A0;
+    color: #fff;
+    }
+    .form-check-input + label.btn:hover {
+    background-color: #91C9A0;
+    color: #fff;
+    }
+{% endblock %}
+
+
+{#{% block navbar %}#}
+{#    {% include 'navbar.html' %}#}
+{#{% endblock %}#}
+
+
+{% block content %}
+
+    <div class="mt-4">
+        <div class="container">
+            <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                <ol class="breadcrumb ms-2">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page"><a
+                            href="{% url 'items_in_category' category=category_name %}">{{ category_name }} Puzzles </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ item.name }}</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex flex-row align-items-center">
+                <div class="col-6">
+                    <img src="{{ item.image_url }}"
+                         alt="image" class="img-fluid">
+                </div>
+
+                <div class="col-6 d-flex flex-column justify-content-center align-items-start">
+                    <h2 class="display-6">{{ item.name }}</h2>
+                    <p class="text-muted"><span id="number-reviews">599</span> reviews <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye"
+                     viewBox="0 0 16 16">
+  <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+  <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+</svg>
+            </span></p>
+
+                    <div class="w-75 border border-1 mb-4"></div>
+                    {% if item.plastic_color %}
+                        <p class="h5">Plastic color: <span class="fw-bold"><span
+                                class="badge bg-secondary">{{ item.plastic_color }}</span></span></p>
+                    {% endif %}
+                    <p class="h5">Brand: <span class="fw-bold"><span class="badge bg-secondary">{{ item.brand }}</span></span></p>
+
+                    <form method="post" action="/shopping-cart" class="w-100 mt-2">
+                        {% csrf_token %}
+
+                        <div class="d-flex align-items-end">
+                            <div class="input-group w-25 rounded-0 mb-3">
+                                <div class="input-group-append">
+                                    <span class="input-group-text rounded-0">Quantity</span>
+                                </div>
+                                <input type="number" class="form-control rounded-0"
+                                       placeholder="Quantity"
+                                       name="quantity"
+                                       value="1"
+                                       id="quantity-input"
+                                       onchange="updateTotalPrice(null)"
+                                >
+                            </div>
+                            <p class="fw-light ms-3">There are only {{ item.quantity }} units left!</p>
+                        </div>
+
+                        {% if puzzle_item %}
+                            <p>Lubrication Service:</p>
+                            <div class="w-100 d-flex flex-column" style="gap: 10px">
+                                {% for ls in lube_serviecs %}
+                                    <div class="form-check w-100 ps-0">
+                                        <input class="form-check-input visually-hidden" type="radio" name="lube_service"
+                                               id="{{ ls.lube_type }}" value="{{ ls.id }}"
+                                                {% if ls.lube_type == 'No Lubrication' %}
+                                               checked="checked"
+                                                {% endif %}
+                                               onchange="updateTotalPrice('{{ ls.price }}')"
+                                        >
+                                        <label class="btn btn-outline-primary w-50 rounded-5 btn-success text-light border-success d-flex justify-content-between px-4"
+                                               for="{{ ls.lube_type }}"><span>{{ ls.lube_type }}</span><span
+                                                class="lube-price">+${{ ls.price }}</span>
+
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <h4 class="mt-3">Base Price: <span id="base-price">${{ item.price }}</span></h4>
+                        {% if puzzle_item %}
+                            <h5 class="mt-3">Lubrication Service: <span id="lube-service-price">$0.0</span></h5>
+                        {% endif %}
+                        <h5 class="mt-3 text-muted">Shipping: <span id="shipping-span">$55</span></h5>
+                        <div class="w-50 border border-1 mt-3 align-self-start"></div>
+                        <h3 class="mt-3">Total: <span id="total-price"
+                                                      onload="initShippingAndTotal('{{ item.price }}')"
+                        ></span></h3>
+
+
+                        <input type="text" name="item_id" id="item-input-id" value="{{ item.id }}" hidden>
+                        <input type="text" name="shipping" id="shipping-input-id" hidden>
+
+                        {% if user.is_authenticated %}
+                            {% if user.is_staff %}
+                                <button type="submit" class="btn btn-success d-block mt-4 btn-disabled" disabled>Add to cart</button>
+                                <p class="fw-light mt-2">You can't use this account for making purchases!</p>
+                            {% else %}
+                                <button type="submit" class="btn btn-success d-block mt-4">Add to cart</button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary d-block mt-4 w-25">Add
+                                to cart</a>
+                        {% endif %}
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="w-75 border border-1 mb-4 mx-auto mt-5"></div>
+
+        <div class="container bg-light mt-3 w-75 p-3 mb-5">
+            <p>{{ item.description }}</p>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            const itemPrice = '{{ item.price }}';
+            initShippingAndTotal(itemPrice);
+
+            // set random nuber for num of reviews
+            document.getElementById('number-reviews').textContent = Math.floor(Math.random() * (1000 - 200 + 1)) + 200
+        });
+
+        function initShippingAndTotal(basePrice) {
+            let shippingPrice = parseFloat((Math.random() * 10).toFixed(2))
+            document.getElementById('shipping-span').textContent = `\$${shippingPrice}`
+            const totalPrice = (shippingPrice + parseFloat(basePrice)).toFixed(2)
+            document.getElementById('total-price').textContent = `\$${totalPrice}`
+
+            // update shipping hidden input field
+            document.getElementById('shipping-input-id').value = shippingPrice
+
+        }
+
+        function updateTotalPrice(lubePrice) {
+            {% if puzzle_item %}
+                let currentLubePrice = parseFloat(
+                    document.querySelector('.form-check-input:checked + label.btn')
+                        .querySelector('.lube-price')
+                        .textContent
+                        .substring(2));
+
+                lubePrice = lubePrice ? parseFloat(lubePrice) : currentLubePrice;
+
+                let spanPrice = document.getElementById('lube-service-price');
+                spanPrice.textContent = `\$${lubePrice}`;
+            {% else %}
+                lubePrice = 0
+            {% endif %}
+
+
+            let quantity = parseInt(document.getElementById('quantity-input').value);
+            let shippingPrice = parseFloat(document.getElementById('shipping-span').textContent.substring(1))
+            let basePrice = parseFloat(document.getElementById('base-price').textContent.substring(1))
+
+
+            document.getElementById('total-price').textContent = `\$${((basePrice + lubePrice) * quantity + shippingPrice).toFixed(2)}`
+        }
+    </script>
+
+{% endblock %}
+
+{#{% block footer %}#}
+{#    {% include 'footer.html' %}#}
+{#{% endblock %}#}

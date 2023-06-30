@@ -1,0 +1,71 @@
+{% extends 'base_generic.html' %}
+
+
+{#{% block navbar %}#}
+{#    {% include 'navbar.html' %}#}
+{#{% endblock %}#}
+
+
+{% block content %}
+    <div class="container mt-3">
+    <h1>Purchase history</h1>
+        {% for sc in shopping_carts %}
+            <div class="bg-light mt-4">
+                <p class="h4 p-3">{{ sc.date_time_checked_out }}</p>
+            </div>
+            {% for o_item in sc.order_items.all %}
+                <div class="border border-1 border-light d-flex justify-content-between" style="height: 7rem;">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <img src="{{ o_item.item.image_url }}"
+                             alt="" style="max-height: 100%; max-width: 100%;">
+                        <div class="d-flex flex-column justify-contents-center" style="gap: 5px">
+                            <p class="my-0">{{ o_item.item.name }}</p>
+                            {% if o_item.lube_service %}
+                                <p class="text-muted my-0">{{ o_item.lube_service.lube_type }}</p>
+                            {% endif %}
+                            <p class="text-muted my-0">Shipping: ${{ o_item.shipping_price }}</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center text-center me-3">
+                        <label for="quantity" class="form-label">Quantity:</label>
+                        <input type="number" id="quantity"
+                               class="form-control text-dark ms-2 px-2 mx-0 text-center"
+                               disabled style="width: 3.5rem" placeholder="{{ o_item.quantity }}">
+{#                        <p class="d-flex align-items-center justify-content-end ms-5 my-0"#}
+{#                           id="item-{{ o_item.id }}-price"></p>#}
+                        <label for="quantity" class="form-label ms-3 me-2">Price:</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text rounded-0">$</span>
+                            </div>
+                            <input type="number" id="item-{{ o_item.id }}-price"
+                                   class="form-control text-dark px-2 mx-0 text-center"
+                                   disabled style="width: 4.5rem" >
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="my-4" style="border: 2px solid #6bcc9e;"></div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function calculateItemPrice(basePrice, lubePrice, quantity, orderItemId) {
+            lubePrice = lubePrice ? lubePrice : 0
+            let totalItemPrice = (parseFloat(basePrice) + parseFloat(lubePrice)) * parseFloat(quantity);
+            document.getElementById(`item-${orderItemId}-price`).placeholder = `${totalItemPrice.toFixed(2)}`;
+        }
+
+        {% for sc in shopping_carts %}
+            {% for o_item in sc.order_items.all %}
+                calculateItemPrice('{{ o_item.item.price }}', '{{ o_item.lube_service.price }}', '{{ o_item.quantity }}', '{{ o_item.id }}');
+            {% endfor %}
+        {% endfor %}
+    </script>
+{% endblock %}
+
+{#{% block footer %}#}
+{#    {% include 'footer.html' %}#}
+{#{% endblock %}#}
+
+

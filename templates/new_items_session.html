@@ -1,0 +1,69 @@
+{% extends 'base_generic.html' %}
+
+
+{#{% block navbar %}#}
+{#    {% include 'navbar.html' %}#}
+{#{% endblock %}#}
+
+
+{% block content %}
+    <div class="container py-5">
+
+        <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb"
+             class="d-flex justify-content-between px-2 mb-2">
+            <ol class="breadcrumb ms-2">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Manage New Products</li>
+            </ol>
+            <div>
+                <a href="{% url 'enter_new_item' item_type='Puzzle' %}" class="btn btn-success">Add new puzzle</a>
+                <a href="{% url 'enter_new_item' item_type='Accessory' %}" class="btn btn-success">Add new accessory</a>
+                {% if items|length != 0 %}
+                    <a href="{% url 'save_employee_session' %}" class="btn btn-warning">Save Changes</a>
+                {% endif %}
+            </div>
+        </nav>
+
+        <div class="w-100 border border-1"></div>
+        <p class="mt-2">You have added {{ items|length }} new items in this session.</p>
+
+        <div class="d-flex flex-column justify-content-center align-items-left" style="gap: 10px">
+            {% for item in items %}
+                <div class="border border-1 border-light d-flex justify-content-between" style="height: 7rem;">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <img src="{{ item.image_url }}"
+                             alt="" style="max-height: 100%; max-width: 100%;">
+                        <div class="d-flex flex-column justify-contents-center" style="gap: 5px">
+                            <p class="my-0">{{ item.name }}</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between w-50">
+                        <label for="price" class="form-label">Price: <input type="number" id="price"
+                                                                            class="form-control text-dark ms-2 px-2 mx-0 text-center d-inline"
+                                                                            disabled style="width: 4.5rem"
+                                                                            placeholder="{{ item.price }}"></label>
+                        <label for="quantity" class="form-label">Quantity: <input type="number" id="quantity"
+                                                                                  class="form-control text-dark ms-2 px-2 mx-0 text-center d-inline"
+                                                                                  disabled style="width: 3.5rem"
+                                                                                  placeholder="{{ item.quantity }}"></label>
+                        <form action="{% url 'delete_item' item_id=item.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
+                                     class="bi bi-trash text-danger" viewBox="0 0 16 16">
+                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{#{% block footer %}#}
+{#    {% include 'footer.html' %}#}
+{#{% endblock %}#}
